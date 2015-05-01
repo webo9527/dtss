@@ -1,0 +1,92 @@
+<!doctype html>
+<html xmlns:ice="http://ns.adobe.com/incontextediting">
+<head>
+<meta charset="utf-8">
+<title>资源浏览</title>
+<link rel="stylesheet" type="text/css" href="../css/main.css" />
+<link rel="stylesheet" type="text/css" href="../jeasyui/themes/gray/easyui.css" />
+<link rel="stylesheet" type="text/css" href="../jeasyui/themes/icon.css" />
+<script type="text/javascript" src="../js/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../js/common.js"></script>
+<script type="text/javascript" src="../jeasyui/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../jeasyui/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript">
+var title='资源浏览';
+$(document).ready(function(){
+	$.get('/dtss/ajax.php',{c:'showmanager',a:'gettree'},function(j){var d = eval("("+j+")");$('#tree1').tree('loadData',eval("("+d.message+")"));});
+    $('#tree1').tree({
+        onClick: function(n){
+            n1=n;
+            idstr="";
+            $('#pty').hide();
+            while(n1){
+                if(idstr==""){idstr=n1.id;}else{idstr=n1.id+","+idstr;}
+                n1=$('#tree1').tree('getParent',n1.target);
+            }
+            $.get('/dtss/ajax.php',{c:'showmanager',a:'showbl',id:idstr}, function(j){
+                //alert(j);
+                var d=eval("("+j+")");
+                d=eval("("+d.message+")");
+                $('#tt1').datagrid({columns:eval("[["+d.cl+"]]")});
+                $('#tt1').datagrid('loadData',d.b);
+            });
+        }
+    });
+    $('#tt1').datagrid({
+  		onClickRow: function(index,data){
+  		    $("#pty").hide();
+            $.get('/dtss/ajax.php',{c:'showmanager',a:'getbody',id:data['id']},function(j){
+                var d=eval("("+j+")");
+                $('#pty').show();
+                $('#tt').propertygrid('loadData',eval("("+d.message+")"));
+            });
+        },
+    });
+
+	htmlobj=$.ajax({url:"/dtss/title.html",async:false});
+	$('#header_html').html(htmlobj.responseText);
+});
+</script>
+</head>
+<body>
+<div class="container" >
+<div id="header_html"></div>
+<div class="easyui-tabs" style="width:100%;height:600px;">
+<div title="规划支撑" style="padding:10px;">
+</div>
+<div title="资源浏览" style="padding:10px;">    
+	<div class="easyui-layout" style="width:100%;height:500px;">
+		<div region="west" split="true" title="目录" style="width:200px;">
+<ul class="easyui-tree" id="tree1" >
+    </ul>
+		</div>
+		<div id="content" region="center" title="实体" style="padding:5px;">
+		<table id="tt1" class="easyui-datagrid" style="width:auto;"	title="" data-options="singleSelect:true">
+	<thead>
+		<tr>
+			<th field="id" width="80">id</th>
+		</tr>
+	</thead>
+    <tbody></tbody>
+</table>
+		</div>
+		<div id="dt1" region="east" split="true" title="明细" style="padding:5px; width:500px" >
+        <div id="pty">
+		<table id="tt" class="easyui-propertygrid" style="width:auto"
+            showGroup="false" scrollbarSize="0" data-options="columns: mc"></table>
+  <script>
+		var mc = [[
+    		{field:'name',title:'属性',width:40,sortable:true},
+   		    {field:'value',title:'值',width:60,resizable:true}
+        ]];
+</script>
+		</div>
+        </div>
+	</div>
+</div> 
+<div title="规划数据上传">
+</div>   
+</div>
+</div>  
+</body>
+</html>
